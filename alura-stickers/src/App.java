@@ -1,3 +1,4 @@
+import java.io.File;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URL;
@@ -37,14 +38,18 @@ public class App {
         // exibir e manipular os dados da maneira que quisermos
         String urlImagem;
         String titulo;
+        String nomeDoArquivo;
         var geradora = new GeradoraDeFigurinhas();
+        var diretorio = new File("figurinhas/");
+        diretorio.mkdir();
 
         for (Map<String,String> filme : listaDeFilmes) {
-            titulo = filme.get("title") + ".png";
+            titulo = filme.get("title").replace(":", "-") + ".png";
             urlImagem = filme.get("image");
             InputStream inputStream = new URL(urlImagem).openStream();
 
-            geradora.criar(inputStream, titulo);
+            nomeDoArquivo = "figurinhas/" + titulo + ".png";
+            geradora.criar(inputStream, nomeDoArquivo);
 
             System.out.println("\u001B[31m\u001b[1mTítulo: \u001b[0m\u001b[3m\u001B[34m" + titulo + "\u001b[0m");
             // System.out.println("\u001b[1mImagem: \u001b[0m\u001b[4m" + urlImagem + "\u001b[0m");
