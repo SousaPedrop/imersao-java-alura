@@ -1,63 +1,71 @@
 import java.io.File;
 import java.io.InputStream;
-import java.net.URI;
 import java.net.URL;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.net.http.HttpResponse.BodyHandlers;
 import java.util.List;
-import java.util.Map;
 
 public class App {
     public static void main(String[] args) throws Exception {
-        
 
         // fazer conexão HTTP/HTTPS e buscar top 250 filmes
-        String url = "https://raw.githubusercontent.com/alura-cursos/imersao-java-2-api/main/TopMovies.json";
-        
-        URI endereco = URI.create(url);
-        // HttpClient client = HttpClient.newHttpClient();
-        var client = HttpClient.newHttpClient();
-        var request = HttpRequest.newBuilder(endereco).GET().build();
+        String url = "https://api.nasa.gov/planetary/apod?api_key=DEMO_KEY&start_date=2023-03-22&end_date=2023-03-24";
+        // String url = "https://raw.githubusercontent.com/alura-cursos/imersao-java-2-api/main/TopMovies.json";
 
-        HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
-        String body = response.body();
+        var http = new clienteHttp();
+        String json = http.buscaDados(url);
+        /*
+         * Links alternativos:
+         * https://raw.githubusercontent.com/alura-cursos/imersao-java-2-api/main/
+         * TopMovies.json
+         * https://raw.githubusercontent.com/alura-cursos/imersao-java-2-api/main/TopTVs
+         * .json
+         * https://raw.githubusercontent.com/alura-cursos/imersao-java-2-api/main/
+         * MostPopularMovies.json
+         * https://raw.githubusercontent.com/alura-cursos/imersao-java-2-api/main/
+         * MostPopularTVs.json
+         */
 
-        /* Links alternativos:
-            https://raw.githubusercontent.com/alura-cursos/imersao-java-2-api/main/TopMovies.json
-            https://raw.githubusercontent.com/alura-cursos/imersao-java-2-api/main/TopTVs.json
-            https://raw.githubusercontent.com/alura-cursos/imersao-java-2-api/main/MostPopularMovies.json
-            https://raw.githubusercontent.com/alura-cursos/imersao-java-2-api/main/MostPopularTVs.json
-        */
-
-        // extrair os dados que interessam (titulo, poster, classificação) - parsear
-        var parser = new JsonParser();
-        List<Map<String, String>> listaDeFilmes = parser.parse(body);
-        
         // exibir e manipular os dados da maneira que quisermos
-        String urlImagem;
-        String titulo;
+        ExtratorDeConteudo extratorConteudoDaNasa = new ExtratorConteudoDaNasa();
+        List<Conteudo> conteudos = extratorConteudoDaNasa.extraiConteudos(json);
+
+        // ExtratorDeConteudo extratorConteudoDoImdb = new ExtratorConteudoDoImdb();
+        // List<Conteudo> conteudos = extratorConteudoDoImdb.extraiConteudos(json);
+
         String nomeDoArquivo;
         var geradora = new GeradoraDeFigurinhas();
         var diretorio = new File("figurinhas/");
         diretorio.mkdir();
 
-        for (Map<String,String> filme : listaDeFilmes) {
-            titulo = filme.get("title").replace(":", "-") + ".png";
-            urlImagem = filme.get("image");
-            InputStream inputStream = new URL(urlImagem).openStream();
+        for (int i = 0; i < 3; i++) {
+            Conteudo conteudo = conteudos.get(i);
 
-            nomeDoArquivo = "figurinhas/" + titulo + ".png";
+            InputStream inputStream = new URL(conteudo.getUrlImagem()).openStream();
+            nomeDoArquivo = "figurinhas/" + conteudo.getTitulo().replace(":", "-") + ".png";
+
             geradora.criar(inputStream, nomeDoArquivo);
-
-            System.out.println("\u001B[31m\u001b[1mTítulo: \u001b[0m\u001b[3m\u001B[34m" + titulo + "\u001b[0m");
-            // System.out.println("\u001b[1mImagem: \u001b[0m\u001b[4m" + urlImagem + "\u001b[0m");
-            // System.out.println("\u001B[33m\u001b[1mNota: \u001b[3m" + filme.get("imDbRating") + "\u001b[0m");
-            // for (int i = 0; i < Math.floor(Double.parseDouble(filme.get("imDbRating"))); i++) {
-            //     System.out.print("⭐");
-            // }
-            System.out.println("\n===================================");
+            System.out.println(
+                    "\u001B[31m\u001b[1mTítulo: \u001b[0m\u001b[3m\u001B[34m" + conteudo.getTitulo() + "\u001b[0m");
+            System.out.println();
         }
-    }//	\u001B[34m
+        // for (Map<String, String> filme : listaDeFilmes) {
+        // titulo = filme.get("title").replace(":", "-") + ".png";
+        // urlImagem = filme.get("image");
+        // InputStream inputStream = new URL(urlImagem).openStream();
+
+        // nomeDoArquivo = "figurinhas/" + titulo + ".png";
+        // geradora.criar(inputStream, nomeDoArquivo);
+
+        // System.out.println("\u001B[31m\u001b[1mTítulo: \u001b[0m\u001b[3m\u001B[34m"
+        // + titulo + "\u001b[0m");
+        // System.out.println("\u001b[1mImagem: \u001b[0m\u001b[4m" + urlImagem +
+        // "\u001b[0m");
+        // System.out.println("\u001B[33m\u001b[1mNota: \u001b[3m" +
+        // filme.get("imDbRating") + "\u001b[0m");
+        // for (int i = 0; i < Math.floor(Double.parseDouble(filme.get("imDbRating")));
+        // i++) {
+        // System.out.print("⭐");
+        // }
+        // System.out.println("\n===================================");
+        // }
+    }// \u001B[34m
 }
